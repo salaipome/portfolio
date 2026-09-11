@@ -123,7 +123,7 @@ h1{
   color:var(--amber);
   margin:46px 0 4px;
 }
-.section-count{ color:var(--ink-faint); }
+.section-count{ color:var(--amber-dim); font-weight:700; }
 
 /* ---------- Work columns ---------- */
 .work-columns{

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manufacturing Defect Analysis — Salai Hang</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="wrap case">
+
+  <a class="backlink" href="../index.html">← Back to portfolio</a>
+
+  <div class="case-head">
+    <p class="section-label">Case Study</p>
+    <h1>Manufacturing Defect Analysis</h1>
+    <p class="case-meta">
+      <span>Python · Pandas · Scikit-learn · Random Forest</span>
+    </p>
+  </div>
+
+  <article>
+
+    <h2>Brief</h2>
+    <p>
+      A 3,240-row production QC dataset — 16 process metrics per batch (cost, supplier quality,
+      delivery, maintenance, downtime, inventory, safety, energy and additive-manufacturing fields)
+      alongside two defect signals: a continuous <code>DefectRate</code> and a binary
+      <code>DefectStatus</code> pass/fail flag. The question: which of those 16 metrics actually
+      predicts whether a batch gets flagged defective, and how much of that could be caught before
+      shipment using a model built on process data alone.
+    </p>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">Production runs</div><div class="stat-value">3,240</div><div class="stat-sub">17 fields each</div></div>
+      <div class="stat"><div class="stat-label">Flagged defective</div><div class="stat-value">84.0%</div><div class="stat-sub">2,723 of 3,240</div></div>
+      <div class="stat"><div class="stat-label">Model accuracy</div><div class="stat-value">95.1%</div><div class="stat-sub">held-out 20% split</div></div>
+      <div class="stat"><div class="stat-label">Maintenance gap</div><div class="stat-value">+5.6 hrs</div><div class="stat-sub">defective vs. passed batches</div></div>
+    </div>
+
+    <h2>Cleaning</h2>
+    <p>
+      No missing values across any of the 17 fields and no duplicate rows, so nothing needed
+      dropping or imputing. Every feature arrived numeric already — no categorical encoding
+      required before modelling. One thing worth flagging up front: each feature's distribution
+      sits close to uniform across its full range rather than the bell-curve or long-tail shapes
+      you'd expect from a live production line — a sign this is simulated telemetry rather than a
+      real factory feed, which matters for how much weight to put on the "why," not just the
+      "what."
+    </p>
+
+    <h2>Exploring the data</h2>
+    <p>
+      The four fields most relevant to quality — defect rate, quality score, maintenance hours and
+      production volume — each spread fairly evenly across their stated range rather than
+      clustering anywhere. The outcome itself doesn't: <strong>84% of batches (2,723 of 3,240) are
+      flagged defective</strong> against 16% (517) passed — an imbalance that shapes how any model
+      built on this data needs to be read.
+    </p>
+    <figure>
+      <img src="assets/defect-distributions.png" alt="Histograms of defect rate, quality score, maintenance hours and production volume, all roughly uniform">
+      <figcaption>Fig 1. — Defect rate, quality score, maintenance hours and production volume all spread evenly across their range.</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/defect-status-split.png" alt="Bar chart showing 517 batches passed QC against 2,723 flagged defective">
+      <figcaption>Fig 2. — 517 batches passed QC against 2,723 flagged defective — an 84/16 split.</figcaption>
+    </figure>
+
+    <h2>What correlates with a defect flag</h2>
+    <p>
+      Most of the 16 process metrics show next to no relationship with whether a batch got
+      flagged: supplier quality, downtime, worker productivity, energy efficiency, safety
+      incidents and delivery delay all sit under <code>|r| = 0.05</code> — functionally noise.
+      Only four stand out: <strong>maintenance hours (r = 0.30), defect rate (r = 0.25, expected
+      since it's the same signal in continuous form), production volume (r = 0.13) and quality
+      score (r = -0.20)</strong>.
+    </p>
+    <figure>
+      <img src="assets/defect-correlation.png" alt="Horizontal bar chart of each feature's correlation with DefectStatus, led by MaintenanceHours">
+      <figcaption>Fig 3. — Correlation with the defect flag, sorted. Twelve of sixteen features are effectively noise.</figcaption>
+    </figure>
+
+    <h2>Predicting defects with a model</h2>
+    <p>
+      A Random Forest trained on all 16 fields reached <strong>95.1% accuracy</strong> on a
+      held-out 20% test split (648 batches) — 95% precision and 99% recall on "Defective," but
+      only 73% recall on "Passed QC," reflecting the class imbalance: the model is far more
+      confident flagging a bad batch than clearing a good one.
+    </p>
+    <figure>
+      <img src="assets/defect-feature-importance.png" alt="Bar chart of Random Forest feature importances, led by MaintenanceHours, DefectRate, QualityScore and ProductionVolume">
+      <figcaption>Fig 4. — Feature importance mirrors the correlation ranking almost exactly: the same four fields account for roughly three-quarters of the model's total importance.</figcaption>
+    </figure>
+
+    <h2>The maintenance hours pattern</h2>
+    <p>
+      The single strongest signal runs the opposite way you'd expect. Batches that passed QC
+      logged a median <strong>6 maintenance hours</strong>; batches flagged defective logged a
+      median <strong>13</strong> — more than double.
+    </p>
+    <figure>
+      <img src="assets/defect-maintenance-box.png" alt="Box plot comparing maintenance hours for passed vs defective batches, with defective batches skewing much higher">
+      <figcaption>Fig 5. — Maintenance hours by outcome: defective batches skew noticeably higher, not lower.</figcaption>
+    </figure>
+    <p>
+      More maintenance is coinciding with more defects, not fewer — which reads like reactive
+      servicing recorded around already-troubled batches rather than preventive upkeep paying off.
+      Worth testing directly rather than assumed, by separating scheduled from reactive
+      maintenance in the underlying data.
+    </p>
+
+    <h2>Where this points</h2>
+    <ul class="reco-list">
+      <li><span class="n">01</span> Maintenance hours, defect rate and quality score are doing essentially all the predictive work — a lightweight alert on those three would likely catch most at-risk batches without needing the full model.</li>
+      <li><span class="n">02</span> The maintenance-defect relationship needs a causal read, not just a correlational one — tag maintenance events as scheduled vs. reactive before concluding more upkeep helps or hurts.</li>
+      <li><span class="n">03</span> Supplier quality, worker productivity, downtime and energy metrics show no measurable relationship to defect outcomes here — worth confirming they're captured at the right granularity before ruling them out as levers.</li>
+      <li><span class="n">04</span> With 84% of batches flagged, the QC threshold itself may be the bigger lever — worth revisiting before assuming every flagged batch reflects a genuine failure.</li>
+    </ul>
+
+  </article>
+
+</div>
+</body>
+</html>
