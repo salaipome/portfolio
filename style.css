@@ -88,7 +88,7 @@ h1{
 .role span{ color:var(--ink-faint); padding:0 8px; }
 
 .bio{
-  max-width:60ch;
+  max-width:none;
   font-size:16.5px;
   line-height:1.65;
   color:var(--ink-dim);
@@ -116,10 +116,11 @@ h1{
 /* ---------- Section label ---------- */
 .section-label{
   font-family:var(--mono);
+  font-weight:700;
   font-size:11.5px;
   letter-spacing:.14em;
   text-transform:uppercase;
-  color:var(--ink-faint);
+  color:var(--amber);
   margin:46px 0 4px;
 }
 .section-count{ color:var(--ink-faint); }
