@@ -292,6 +292,8 @@ footer{
   gap:6px 10px;
 }
 .case-meta .sep{ color:var(--ink-faint); }
+.case-meta a{ color:var(--teal); text-decoration:none; }
+.case-meta a:hover{ text-decoration:underline; }
 
 .case article{
   margin-top:34px;
