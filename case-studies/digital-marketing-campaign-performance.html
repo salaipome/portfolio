@@ -42,11 +42,43 @@
 
     <h2>Cleaning</h2>
     <p>
-      No missing values, no duplicate rows. Two columns — <code>AdvertisingPlatform</code> and
-      <code>AdvertisingTool</code> — turned out to hold a single placeholder value across every
-      one of the 8,000 rows (redacted rather than genuinely captured), so they were dropped before
-      analysis rather than treated as real signal.
+      QA pass across all 20 columns: <code>df.isna().sum()</code> returned zero missing values,
+      and zero duplicate <code>CustomerID</code> rows. Two columns —
+      <code>AdvertisingPlatform</code> and <code>AdvertisingTool</code> — turned out to hold a
+      single placeholder value across every one of the 8,000 rows (<code>"IsConfid"</code> and
+      <code>"ToolConfid"</code> respectively — redacted rather than genuinely captured), so they
+      were dropped before analysis rather than treated as real signal. The categorical fields
+      checked out cleanly: <strong>Gender</strong> splits 4,839 Female / 3,161 Male, the five
+      <strong>CampaignChannel</strong> values and four <strong>CampaignType</strong> values are
+      each represented in the low-to-mid thousands with no rare or malformed categories, and every
+      numeric field's observed range matched what you'd expect (age 18–69, income
+      $20,014–$149,986) with no negative values or impossible outliers.
     </p>
+
+    <h2>Data profile</h2>
+    <p>
+      Descriptive statistics for the demographic, spend and engagement fields used below.
+    </p>
+    <div class="case-table-wrap">
+      <table class="case-table">
+        <thead><tr><th>Field</th><th>Min</th><th>Mean</th><th>Median</th><th>Max</th><th>Std dev</th></tr></thead>
+        <tbody>
+          <tr><td>Age</td><td>18</td><td>43.6</td><td>43</td><td>69</td><td>14.9</td></tr>
+          <tr><td>Income ($)</td><td>20,014</td><td>84,664</td><td>84,927</td><td>149,986</td><td>37,580</td></tr>
+          <tr><td>AdSpend ($)</td><td>100</td><td>5,001</td><td>5,013</td><td>9,998</td><td>2,838</td></tr>
+          <tr><td>ClickThroughRate</td><td>0.01</td><td>0.155</td><td>0.155</td><td>0.30</td><td>0.084</td></tr>
+          <tr><td>ConversionRate</td><td>0.01</td><td>0.104</td><td>0.104</td><td>0.20</td><td>0.055</td></tr>
+          <tr><td>WebsiteVisits</td><td>0</td><td>24.8</td><td>25</td><td>49</td><td>14.3</td></tr>
+          <tr><td>PagesPerVisit</td><td>1.0</td><td>5.5</td><td>5.5</td><td>10.0</td><td>2.6</td></tr>
+          <tr><td>TimeOnSite (min)</td><td>0.5</td><td>7.7</td><td>7.7</td><td>15.0</td><td>4.2</td></tr>
+          <tr><td>SocialShares</td><td>0</td><td>49.8</td><td>50</td><td>99</td><td>28.9</td></tr>
+          <tr><td>EmailOpens</td><td>0</td><td>9.5</td><td>9</td><td>19</td><td>5.7</td></tr>
+          <tr><td>EmailClicks</td><td>0</td><td>4.5</td><td>4</td><td>9</td><td>2.9</td></tr>
+          <tr><td>PreviousPurchases</td><td>0</td><td>4.5</td><td>4</td><td>9</td><td>2.9</td></tr>
+          <tr><td>LoyaltyPoints</td><td>0</td><td>2,490</td><td>2,497</td><td>4,999</td><td>1,430</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <h2>Channel performance</h2>
     <p>
