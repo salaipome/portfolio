@@ -16,6 +16,8 @@
     <h1>Manufacturing Defect Analysis</h1>
     <p class="case-meta">
       <span>Python · Pandas · Scikit-learn · Random Forest</span>
+      <span class="sep">·</span>
+      <span>Dataset: <em>Predicting Manufacturing Defects</em>, Rabie El Kharoua (CC BY 4.0)</span>
     </p>
   </div>
 
@@ -42,11 +44,9 @@
     <p>
       No missing values across any of the 17 fields and no duplicate rows, so nothing needed
       dropping or imputing. Every feature arrived numeric already — no categorical encoding
-      required before modelling. One thing worth flagging up front: each feature's distribution
-      sits close to uniform across its full range rather than the bell-curve or long-tail shapes
-      you'd expect from a live production line — a sign this is simulated telemetry rather than a
-      real factory feed, which matters for how much weight to put on the "why," not just the
-      "what."
+      required before modelling. Per the dataset's own documentation this is a synthetic dataset
+      generated for educational use, not a live factory feed — worth keeping in mind for how much
+      weight to put on the "why," not just the "what."
     </p>
 
     <h2>Exploring the data</h2>
@@ -54,8 +54,11 @@
       The four fields most relevant to quality — defect rate, quality score, maintenance hours and
       production volume — each spread fairly evenly across their stated range rather than
       clustering anywhere. The outcome itself doesn't: <strong>84% of batches (2,723 of 3,240) are
-      flagged defective</strong> against 16% (517) passed — an imbalance that shapes how any model
-      built on this data needs to be read.
+      flagged defective</strong> against 16% (517) passed. That skew is by design, not an artifact
+      — the dataset's documentation notes defect cases were deliberately oversampled since they're
+      rare in real production, with non-defect cases added afterward for balance, and it flags the
+      result as imbalanced and worth correcting before modelling. The Random Forest below uses
+      class weighting for that reason rather than training on the raw 84/16 split.
     </p>
     <figure>
       <img src="assets/defect-distributions.png" alt="Histograms of defect rate, quality score, maintenance hours and production volume, all roughly uniform">
