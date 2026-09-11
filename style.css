@@ -33,6 +33,7 @@ a{ color:inherit; }
   margin:0 auto;
   padding-block: 64px 56px;
 }
+body:has(.work-columns) .wrap{ max-width:900px; }
 
 /* ---------- Masthead ---------- */
 .masthead{
@@ -122,6 +123,20 @@ h1{
   margin:46px 0 4px;
 }
 .section-count{ color:var(--ink-faint); }
+
+/* ---------- Work columns ---------- */
+.work-columns{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px 48px;
+  margin-top:46px;
+}
+.work-col .section-label{ margin-top:0; }
+
+@media (max-width:760px){
+  .work-columns{ grid-template-columns:1fr; gap:0; }
+  .work-col + .work-col .section-label{ margin-top:46px; }
+}
 
 /* ---------- Project log ---------- */
 .log{
