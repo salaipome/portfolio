@@ -206,6 +206,26 @@ h1{
 }
 .tag.build{ color:var(--amber); border-color:rgba(221,160,84,.35); }
 
+/* ---------- Skills ---------- */
+.skills-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:26px 48px;
+  margin-top:14px;
+}
+.skill-cat{
+  font-family:var(--mono);
+  font-weight:700;
+  font-size:14px;
+  color:var(--ink);
+  margin:0 0 10px;
+}
+.skill-group .tags{ margin-top:0; }
+
+@media (max-width:760px){
+  .skills-grid{ grid-template-columns:1fr; gap:22px; }
+}
+
 /* ---------- Footer ---------- */
 footer{
   margin-top:56px;
