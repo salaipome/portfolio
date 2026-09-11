@@ -214,6 +214,7 @@ h1{
   gap:26px 48px;
   margin-top:14px;
 }
+.skill-group{ padding-left:52px; }
 .skill-cat{
   font-family:var(--mono);
   font-weight:700;
@@ -221,14 +222,14 @@ h1{
   color:var(--ink);
   margin:0 0 10px;
 }
-.skill-group .tags{ margin-top:0; padding-left:52px; }
+.skill-group .tags{ margin-top:0; }
 
 @media (max-width:760px){
   .skills-grid{ grid-template-columns:1fr; gap:22px; }
 }
 
 @media (max-width:520px){
-  .skill-group .tags{ padding-left:38px; }
+  .skill-group{ padding-left:38px; }
 }
 
 /* ---------- Footer ---------- */
