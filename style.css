@@ -256,12 +256,15 @@ a.proj-name:hover .verify-arrow{ color:var(--amber); }
   border-top:1px solid var(--line);
 }
 .row{
+  position:relative;
   display:grid;
   grid-template-columns: 34px 1fr;
   gap:18px;
   padding:22px 0;
   border-bottom:1px solid var(--line);
+  transition:background-color .15s ease;
 }
+.log .row:has(.proj-link):hover{ background-color:var(--surface); }
 .idx{
   font-family:var(--mono);
   font-size:13px;
@@ -292,6 +295,7 @@ a.proj-name:hover .verify-arrow{ color:var(--amber); }
 }
 .proj-link:hover{ text-decoration:underline; }
 .proj-link svg{ vertical-align:-1px; margin-left:1px; }
+.proj-link::after{ content:""; position:absolute; inset:0; }
 
 .proj-desc{
   margin:8px 0 0;
