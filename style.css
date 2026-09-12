@@ -254,6 +254,16 @@ footer{
 .chain a{ color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); }
 .chain a:hover{ border-color:var(--amber); color:var(--amber); }
 .chain .sep{ color:var(--ink-faint); }
+.socials{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.socials a{
+  color:var(--ink-dim);
+  display:flex;
+}
+.socials a:hover{ color:var(--amber); }
 .loc{
   font-family:var(--mono);
   font-size:12px;
