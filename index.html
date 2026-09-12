@@ -266,7 +266,8 @@
 
   </div>
 
-  <p class="section-label">Education &amp; Certifications</p>
+  <details class="edu-box">
+  <summary class="section-label">Education &amp; Certifications</summary>
 
   <div class="log log-compact">
 
@@ -311,6 +312,7 @@
     </div>
 
   </div>
+  </details>
 
   <footer>
     <div class="chain">
@@ -358,5 +360,10 @@
         });
       }
     });
+  }
+
+  var eduBox = document.querySelector('.edu-box');
+  if (eduBox) {
+    eduBox.addEventListener('mouseenter', function(){ eduBox.open = true; });
   }
 </script>
