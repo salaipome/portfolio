@@ -254,6 +254,7 @@ footer{
 .chain a{ color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); }
 .chain a:hover{ border-color:var(--amber); color:var(--amber); }
 .chain .sep{ color:var(--ink-faint); }
+.email-btn.copied{ color:var(--teal); border-color:var(--teal); }
 .socials{
   display:flex;
   align-items:center;

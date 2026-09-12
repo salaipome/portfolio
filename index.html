@@ -1,6 +1,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Salai Hang</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
 
 <div class="wrap">
@@ -323,7 +324,9 @@
 
   <footer>
     <div class="chain">
-      <a href="mailto:salaipome@gmail.com">salaipome@gmail.com</a>
+      <a href="mailto:shdigital.au@gmail.com" class="email-btn" data-email="shdigital.au@gmail.com" title="shdigital.au@gmail.com">
+        <span class="email-label">Email — Business Enquiries</span>
+      </a>
       <span class="sep">/</span>
       <span>+614-8188-2594</span>
     </div>
@@ -345,3 +348,25 @@
   </footer>
 
 </div>
+
+<script>
+  var emailBtn = document.querySelector('.email-btn');
+  if (emailBtn) {
+    emailBtn.addEventListener('click', function(e){
+      var email = this.dataset.email;
+      var label = this.querySelector('.email-label');
+      if (navigator.clipboard) {
+        e.preventDefault();
+        navigator.clipboard.writeText(email).then(function(){
+          var original = label.textContent;
+          label.textContent = 'Copied — ' + email;
+          emailBtn.classList.add('copied');
+          setTimeout(function(){
+            label.textContent = original;
+            emailBtn.classList.remove('copied');
+          }, 1800);
+        });
+      }
+    });
+  }
+</script>
