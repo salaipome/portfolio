@@ -180,6 +180,22 @@ h1{
   font-size:14px;
   color:var(--ink-dim);
 }
+.cert-logo{
+  align-self:center;
+  width:34px;
+  height:34px;
+  background:#fff;
+  border-radius:4px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:4px;
+}
+.cert-logo img{ max-width:100%; max-height:100%; object-fit:contain; }
+a.proj-name{ text-decoration:none; }
+a.proj-name:hover{ color:var(--amber); }
+a.proj-name .verify-arrow{ color:var(--teal); font-weight:400; }
+a.proj-name:hover .verify-arrow{ color:var(--amber); }
 
 /* ---------- Collapsible section box (dropdown) ---------- */
 .dropdown{
