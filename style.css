@@ -185,6 +185,31 @@ h1{
 .dropdown[open] summary::after{ content:"–"; }
 .dropdown .log{ margin-top:14px; }
 
+/* ---------- Category box (bigger, equal size, with art) ---------- */
+.cat-box{ padding:22px 24px; }
+.cat-box summary{ position:relative; min-height:76px; }
+.cat-box .cat-label{ position:relative; z-index:1; }
+.cat-box summary::after{ position:relative; z-index:1; }
+.cat-art{
+  position:absolute;
+  top:0; right:-8px; bottom:0;
+  width:180px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  opacity:.16;
+  pointer-events:none;
+  z-index:0;
+  -webkit-mask-image:linear-gradient(to right, transparent 0%, black 55%);
+  mask-image:linear-gradient(to right, transparent 0%, black 55%);
+}
+.cat-art svg{ height:100%; max-height:72px; width:auto; }
+
+@media (max-width:560px){
+  .cat-art{ display:none; }
+  .cat-box summary{ min-height:0; }
+}
+
 /* ---------- Project log ---------- */
 .log{
   margin-top:10px;
