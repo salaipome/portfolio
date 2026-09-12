@@ -26,8 +26,8 @@
 
   <div class="work-columns">
 
-  <div class="work-col">
-  <p class="section-label">Data Analytics <span class="section-count">— 05 projects</span></p>
+  <details class="dropdown work-col">
+  <summary class="section-label">Data Analytics <span class="section-count">— 05 projects</span></summary>
 
   <div class="log">
 
@@ -92,10 +92,10 @@
     </div>
 
   </div>
-  </div>
+  </details>
 
-  <div class="work-col">
-  <p class="section-label">Web Development &amp; Digital Marketing <span class="section-count">— 06 projects</span></p>
+  <details class="dropdown work-col">
+  <summary class="section-label">Web Development &amp; Digital Marketing <span class="section-count">— 06 projects</span></summary>
 
   <div class="log">
 
@@ -172,11 +172,12 @@
     </div>
 
   </div>
-  </div>
+  </details>
 
   </div>
 
-  <p class="section-label">Skills</p>
+  <details class="dropdown">
+  <summary class="section-label">Skills</summary>
 
   <div class="skills-grid">
 
@@ -265,8 +266,9 @@
     </div>
 
   </div>
+  </details>
 
-  <details class="edu-box">
+  <details class="dropdown">
   <summary class="section-label">Education &amp; Certifications</summary>
 
   <div class="log log-compact">
@@ -362,8 +364,7 @@
     });
   }
 
-  var eduBox = document.querySelector('.edu-box');
-  if (eduBox) {
-    eduBox.addEventListener('mouseenter', function(){ eduBox.open = true; });
-  }
+  document.querySelectorAll('.dropdown').forEach(function(box){
+    box.addEventListener('mouseenter', function(){ box.open = true; });
+  });
 </script>

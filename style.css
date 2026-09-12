@@ -129,14 +129,15 @@ h1{
 .work-columns{
   display:grid;
   grid-template-columns:1fr 1fr;
+  align-items:start;
   gap:16px 48px;
   margin-top:46px;
 }
-.work-col .section-label{ margin-top:0; }
+.work-columns .dropdown{ margin-top:0; }
 
 @media (max-width:760px){
   .work-columns{ grid-template-columns:1fr; gap:0; }
-  .work-col + .work-col .section-label{ margin-top:46px; }
+  .work-col + .work-col{ margin-top:24px; }
 }
 
 /* ---------- Compact log (Education & Certifications) ---------- */
@@ -156,15 +157,15 @@ h1{
   color:var(--ink-dim);
 }
 
-/* ---------- Education box (collapsible) ---------- */
-.edu-box{
+/* ---------- Collapsible section box (dropdown) ---------- */
+.dropdown{
   margin-top:46px;
   border:1px solid var(--line);
   background:var(--surface);
   border-radius:4px;
   padding:16px 20px;
 }
-.edu-box summary{
+.dropdown summary{
   cursor:pointer;
   list-style:none;
   margin:0;
@@ -173,16 +174,16 @@ h1{
   justify-content:space-between;
   gap:12px;
 }
-.edu-box summary::-webkit-details-marker{ display:none; }
-.edu-box summary::after{
+.dropdown summary::-webkit-details-marker{ display:none; }
+.dropdown summary::after{
   content:"+";
   font-family:var(--mono);
   color:var(--ink-faint);
   font-size:15px;
   flex:none;
 }
-.edu-box[open] summary::after{ content:"–"; }
-.edu-box .log{ margin-top:14px; }
+.dropdown[open] summary::after{ content:"–"; }
+.dropdown .log{ margin-top:14px; }
 
 /* ---------- Project log ---------- */
 .log{
