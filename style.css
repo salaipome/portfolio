@@ -139,6 +139,23 @@ h1{
   .work-col + .work-col .section-label{ margin-top:46px; }
 }
 
+/* ---------- Compact log (Education & Certifications) ---------- */
+.log-compact .row{
+  padding:13px 0;
+  align-items:baseline;
+}
+.log-compact .row-main{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:baseline;
+  column-gap:12px;
+  row-gap:2px;
+}
+.log-compact .proj-desc-inline{
+  font-size:14px;
+  color:var(--ink-dim);
+}
+
 /* ---------- Project log ---------- */
 .log{
   margin-top:10px;
