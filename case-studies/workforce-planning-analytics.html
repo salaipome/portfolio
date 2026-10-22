@@ -33,13 +33,20 @@
       <strong>synthetic</strong>, with data-quality defects planted on purpose. Everything about the labour
       market is <strong>real public data</strong>. Every table and chart says which is which.
     </p>
+    <p>
+      Results about Kestrel are results for this simulated organisation. I chose the simulation's settings,
+      so its turnover, hiring times and costs show how the method works, not facts about any real employer.
+    </p>
 
     <div class="stat-grid">
       <div class="stat"><div class="stat-label">Public files verified</div><div class="stat-value">21</div><div class="stat-sub">ABS, JSA, WA PSC</div></div>
       <div class="stat"><div class="stat-label">Employees (synthetic)</div><div class="stat-value">1,990</div><div class="stat-sub">1,627.5 FTE · 6 sites</div></div>
       <div class="stat"><div class="stat-label">Best 3-year forecast error</div><div class="stat-value">3.5%</div><div class="stat-sub">national health jobs · real</div></div>
-      <div class="stat"><div class="stat-label">FY2029 shortage</div><div class="stat-value">28–182</div><div class="stat-sub">FTE, Baseline to Constraint</div></div>
+      <div class="stat"><div class="stat-label">FY2029 shortage</div><div class="stat-value">28–182</div><div class="stat-sub">FTE · simulated org</div></div>
     </div>
+    <p class="case-links">
+      <a href="https://github.com/salaipome/workforce-planning-analytics" target="_blank" rel="noopener">View the code and data on GitHub ↗</a>
+    </p>
 
     <h2>Research first</h2>
     <p>
@@ -99,10 +106,11 @@
 
     <h2>Where the pressure sits</h2>
     <p>
-      Turnover fell from 17.7% in FY2023 to 14.5% in FY2026, against an ABS industry benchmark of 10.8%,
-      which measures a wider concept. Care Workers turn over fastest at 29.5%, and 38.8% of new care workers
-      leave within a year. Doctors take a median 101 days to hire. Broome runs a 14.0% vacancy rate. Agency
-      spend grew from $3.6M to $6.6M in three years.
+      In the simulated organisation, turnover fell from 17.7% in FY2023 to 14.5% in FY2026. The real ABS
+      industry benchmark is 10.8%, though it measures a wider concept. Care Workers turn over fastest at
+      29.5%, and 38.8% of new care workers leave within a year. Doctors take a median 101 days to hire, Broome
+      runs a 14.0% vacancy rate, and agency spend grew from $3.6M to $6.6M in three years. These patterns
+      follow partly from the settings I gave the simulation, so treat them as worked examples of the metrics.
     </p>
     <figure>
       <img src="assets/wfp-turnover-by-family.png" alt="FY2026 turnover by job family, Care Workers highest at 29.5%, against a 10.8% ABS benchmark line">
@@ -125,7 +133,7 @@
       <figcaption>Fig 6. — Rolling-origin backtest, 12 quarters ahead, on real ABS series.</figcaption>
     </figure>
     <p>
-      The model applies one identity to 48 job family × site cells: ending headcount = starting + hires +
+      For the simulated organisation, the model applies one identity to 48 job family × site cells: ending headcount = starting + hires +
       graduates + nurse conversions in + transfers − separations − conversions out. Hiring is capped at the
       organisation's demonstrated recruitment capacity. Assumptions are tagged real, synthetic or
       illustrative. The Constraint scenario's capacity cut, for example, uses JSA's real fill rates of 57% for
@@ -172,19 +180,24 @@
       </table>
     </div>
 
-    <h2>What I'd tell the executive team</h2>
+    <h2>What the results suggest for the simulated organisation</h2>
+    <p>
+      These recommendations are written as a briefing to Kestrel's executives would be. They rest on the
+      simulated internal data and on illustrative costs, so they show how the analysis turns into decisions.
+      They are not advice for a real employer. Only the labour-market evidence behind them is real.
+    </p>
     <ul class="reco-list">
-      <li><span class="n">01</span> Fix the single source of truth first. Raw HR figures overstated FTE by 6.2% and hid 74 FTE of vacancy. Every vacancy needs a requisition or a decision to hold it.</li>
-      <li><span class="n">02</span> Recruit doctors and allied health early. Hire on a 4–6 month lead time, set up a preferred locum panel and build university pipelines. Required medical hires are 149% of what the organisation has shown it can hire.</li>
-      <li><span class="n">03</span> Keep Care Workers through their first year. They are 77 of the 182 FTE Constraint shortage.</li>
-      <li><span class="n">04</span> Pilot regional recruitment at Broome and Kalgoorlie. A 30% regional capacity uplift cut the Constraint shortage from 182 to 139 FTE, the cheapest option tested on illustrative costs.</li>
-      <li><span class="n">05</span> Move nurses rather than hire more. Perth South is 14 FTE over its nursing establishment while Kalgoorlie is short.</li>
-      <li><span class="n">06</span> Treat agency pricing as a cost lever, not a supply lever. A cheaper panel saves about $5.7M but closes no gap.</li>
-      <li><span class="n">07</span> Watch four triggers: turnover above 16%, median time-to-fill above 50 days, WA vacancies per unemployed above 0.7, and WA health ads up more than 20% a year. If two hold for two quarters, switch to the Constraint plan.</li>
+      <li><span class="n">01</span> Fix the single source of truth first. In the simulation, raw HR figures overstated FTE by 6.2% and hid 74 FTE of vacancy. Every vacancy should have a requisition or a decision to hold it.</li>
+      <li><span class="n">02</span> Recruit doctors and allied health early. Both are in real national shortage, and in the model required medical hires are 149% of what Kestrel has shown it can hire. Open roles 4–6 months ahead, set up a preferred locum panel and build university pipelines.</li>
+      <li><span class="n">03</span> Keep Care Workers through their first year. In the model they make up 77 of the 182 FTE Constraint shortage.</li>
+      <li><span class="n">04</span> Test regional recruitment at Broome and Kalgoorlie. A 30% regional capacity uplift cut the modelled Constraint shortage from 182 to 139 FTE. Which option is cheapest depends on costs I assumed, so it would need a real pilot to rank.</li>
+      <li><span class="n">05</span> Move nurses rather than hire more. In the simulation, Perth South is 14 FTE over its nursing establishment while Kalgoorlie is short.</li>
+      <li><span class="n">06</span> Treat agency pricing as a cost lever, not a supply lever. In the model, a cheaper panel saves about $5.7M but closes no gap.</li>
+      <li><span class="n">07</span> Watch four triggers: turnover above 16%, median time-to-fill above 50 days, WA vacancies per unemployed above 0.7, and WA health ads up more than 20% a year. The last two are real public indicators anyone can track. If two hold for two quarters, switch to the Constraint plan.</li>
     </ul>
     <figure>
       <img src="assets/wfp-interventions.png" alt="FY2029 shortage under each mitigation option against the Constraint reference of 182 FTE">
-      <figcaption>Fig 10. — Mitigation options tested against the Constraint scenario. Effects and costs are illustrative and need pilot evidence before funding.</figcaption>
+      <figcaption>Fig 10. — Mitigation options tested against the modelled Constraint scenario. Effects and costs are illustrative assumptions, not measured results.</figcaption>
     </figure>
 
     <h2>Limits and next steps</h2>
@@ -193,7 +206,9 @@
       employer. Shortage ratings are national only, demand is proxied by the budgeted establishment, and
       programme effects are assumptions. To rerun this for real, I'd need monthly HRIS snapshots including
       leavers, position-level establishment from Finance, and the full requisition history from the
-      applicant tracking system.
+      applicant tracking system. The full pipeline, data and documentation are in the
+      <a href="https://github.com/salaipome/workforce-planning-analytics" target="_blank" rel="noopener">GitHub repository</a>;
+      one command rebuilds every number on this page.
     </p>
 
   </article>
