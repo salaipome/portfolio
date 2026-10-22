@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workforce Planning Analytics — Salai Hang</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="wrap case">
+
+  <a class="backlink" href="https://salaipome.github.io/portfolio/">← Back to portfolio</a>
+
+  <div class="case-head">
+    <p class="section-label">Case Study</p>
+    <h1>Workforce Planning Analytics: From Workforce Data to Executive Decisions</h1>
+    <p class="case-meta">
+      <span>Python · Pandas · SQL (SQLite) · Excel · Power BI design</span>
+      <span class="sep">·</span>
+      <span>Data: <a href="https://data.api.abs.gov.au" target="_blank" rel="noopener">ABS Data API</a>, <a href="https://www.jobsandskills.gov.au/data" target="_blank" rel="noopener">Jobs and Skills Australia</a> and the <a href="https://www.wa.gov.au/government/document-collections/state-of-the-western-australian-government-sector-workforce-statistical-bulletins" target="_blank" rel="noopener">WA Public Sector Commission</a> (downloaded 22 Oct 2026), plus synthetic internal data</span>
+    </p>
+  </div>
+
+  <article>
+
+    <h2>Brief</h2>
+    <p>
+      How should a 2,000-employee health provider with six sites across Western Australia manage workforce
+      shortages, vacancies, recruitment capacity and labour cost over FY2027–FY2029? The organisation,
+      <strong>Kestrel Health Services, is fictional</strong>. Public data cannot show one employer's vacancies,
+      turnover or time-to-fill, so its HRIS, payroll, finance, recruitment and agency records are
+      <strong>synthetic</strong>, with data-quality defects planted on purpose. Everything about the labour
+      market is <strong>real public data</strong>. Every table and chart says which is which.
+    </p>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">Public files verified</div><div class="stat-value">21</div><div class="stat-sub">ABS, JSA, WA PSC</div></div>
+      <div class="stat"><div class="stat-label">Employees (synthetic)</div><div class="stat-value">1,990</div><div class="stat-sub">1,627.5 FTE · 6 sites</div></div>
+      <div class="stat"><div class="stat-label">Best 3-year forecast error</div><div class="stat-value">3.5%</div><div class="stat-sub">national health jobs · real</div></div>
+      <div class="stat"><div class="stat-label">FY2029 shortage</div><div class="stat-value">28–182</div><div class="stat-sub">FTE, Baseline to Constraint</div></div>
+    </div>
+
+    <h2>Research first</h2>
+    <p>
+      I verified the data before designing the analysis. Each of the 21 files was downloaded with a SHA-256
+      manifest and parsed to confirm its fields and periods. The set covers WA labour supply (Labour Force,
+      occupation-by-state employment, Census 2021 age profiles), demand (JSA employment projections, online
+      job ads, population), shortage and recruitment conditions (Occupation Shortage List 2026, the employer
+      recruitment survey, job vacancies), turnover benchmarks (ABS Job Mobility) and wage growth. Three
+      sources I hoped to use don't exist as files: state-level shortage ratings, a downloadable National
+      Health Workforce Dataset, and WA-specific health turnover. I left them out rather than approximate them.
+    </p>
+    <p>
+      The evidence supports choosing health in WA. The state has <strong>0.56 job vacancies per unemployed
+      person</strong>, against 0.24 in 2015–19. Online ads for Registered Nurses are 93% above their 2019
+      level, and for doctors 189% above. Nurses, midwives, doctors and most allied health occupations are
+      rated in national shortage.
+    </p>
+    <figure>
+      <img src="assets/wfp-wa-vacancy-unemployment-ratio.png" alt="Line chart of WA job vacancies per unemployed person, 2006 to 2026, peaking at 1.22 in 2022 and now 0.56">
+      <figcaption>Fig 1. — WA job vacancies per unemployed person (real). Still more than double the pre-COVID average.</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/wfp-wa-ivi-health-occupations.png" alt="WA online job ads for four health occupation groups indexed to the 2019 average, all well above 100">
+      <figcaption>Fig 2. — WA online job ads for health occupations, 2019 average = 100 (JSA Internet Vacancy Index, real).</figcaption>
+    </figure>
+
+    <h2>Cleaning and reconciling</h2>
+    <p>
+      The real data had traps of its own. The ABS vacancy survey was suspended from 2008-Q3 to 2009-Q3.
+      WA seasonally adjusted part-time employment isn't published, so I derived it. Summing every row of
+      the ABS population age field counts people three times, because it mixes single years, five-year
+      groups and a total. Each issue is caught by a named reconciliation rule with an exception log.
+    </p>
+    <p>
+      The synthetic HR extract had 2,057 rows marked Active for 1,990 real employees: duplicate rows, stale
+      rehire records, leavers still flagged Active, FTE stored ten times too large, and 26 spellings of six
+      site names. On raw figures the organisation looked <strong>over</strong> its establishment. After
+      cleaning it is <strong>74.3 FTE (4.4%) vacant</strong>, and about 80 FTE of that has no live requisition,
+      so it will never be filled. Every payroll record that doesn't match HR is explained.
+    </p>
+    <div class="case-table-wrap">
+      <table class="case-table">
+        <thead><tr><th>Check</th><th>Raw</th><th>Cleaned</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>Active headcount</td><td>2,057</td><td>1,990</td><td>dedupe, close leavers, latest record per person</td></tr>
+          <tr><td>Total FTE</td><td>1,728.5</td><td>1,627.5</td><td>repair ×10 errors, impute from payroll hours</td></tr>
+          <tr><td>Site / job family labels</td><td>26 / 23</td><td>6 / 8</td><td>normalise, map, confirm by cost centre</td></tr>
+          <tr><td>Unexplained payroll rows</td><td>–</td><td>0</td><td>final pays, contractors, unpaid leave</td></tr>
+          <tr><td>Rebuilt opening stock, Jul 2022</td><td>–</td><td>1,819</td><td>matches the true figure exactly</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure>
+      <img src="assets/wfp-data-quality-before-after.png" alt="Paired bars of six HRIS data-quality issues before and after cleaning; every issue falls to zero">
+      <figcaption>Fig 3. — Data-quality issues before and after the pipeline (synthetic). The rules caught every planted defect, which is expected when one person writes both; it shows the method can be measured, not how it would do on real HR data.</figcaption>
+    </figure>
+
+    <h2>Where the pressure sits</h2>
+    <p>
+      Turnover fell from 17.7% in FY2023 to 14.5% in FY2026, against an ABS industry benchmark of 10.8%,
+      which measures a wider concept. Care Workers turn over fastest at 29.5%, and 38.8% of new care workers
+      leave within a year. Doctors take a median 101 days to hire. Broome runs a 14.0% vacancy rate. Agency
+      spend grew from $3.6M to $6.6M in three years.
+    </p>
+    <figure>
+      <img src="assets/wfp-turnover-by-family.png" alt="FY2026 turnover by job family, Care Workers highest at 29.5%, against a 10.8% ABS benchmark line">
+      <figcaption>Fig 4. — FY2026 turnover by job family (synthetic) against the ABS Job Mobility benchmark (real).</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/wfp-risk-heatmap.png" alt="Risk heatmap by job family and site; Medical Practitioners and Allied Health score highest, especially at Kalgoorlie and Broome">
+      <figcaption>Fig 5. — Workforce risk by job family and site: 60% internal metrics, 40% real occupation indicators. Weights are illustrative.</figcaption>
+    </figure>
+
+    <h2>Forecasting and scenarios</h2>
+    <p>
+      Before trusting a forecast method, I backtested five of them on real ABS series. Three years ahead, the
+      best method missed national health employment by <strong>3.5%</strong> on average, against 12.9% for a
+      no-change forecast. WA nurse employment was too noisy to trend (about 10% error), so demand growth comes
+      from JSA's occupation projections instead. Every method under-forecast health growth.
+    </p>
+    <figure>
+      <img src="assets/wfp-backtest-mape.png" alt="Three panels of 12-quarter forecast error by method for three real series">
+      <figcaption>Fig 6. — Rolling-origin backtest, 12 quarters ahead, on real ABS series.</figcaption>
+    </figure>
+    <p>
+      The model applies one identity to 48 job family × site cells: ending headcount = starting + hires +
+      graduates + nurse conversions in + transfers − separations − conversions out. Hiring is capped at the
+      organisation's demonstrated recruitment capacity. Assumptions are tagged real, synthetic or
+      illustrative. The Constraint scenario's capacity cut, for example, uses JSA's real fill rates of 57% for
+      shortage occupations against 78% for the rest. The Excel version uses live formulas and matches the
+      Python engine on all 432 compared cells.
+    </p>
+    <div class="case-table-wrap">
+      <table class="case-table">
+        <thead><tr><th>FY2029</th><th>Baseline</th><th>Growth</th><th>Constraint</th></tr></thead>
+        <tbody>
+          <tr><td>Shortage FTE</td><td>27.9</td><td>57.9</td><td class="adv">182.4</td></tr>
+          <tr><td>Hires needed / capacity</td><td>376 / 478</td><td>449 / 478</td><td class="adv">566 / 394</td></tr>
+          <tr><td>Agency cost, 3 years</td><td>$13.2M</td><td>$20.9M</td><td class="adv">$48.5M</td></tr>
+          <tr><td>Unfilled FTE-years</td><td>61</td><td>97</td><td class="adv">252</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure>
+      <img src="assets/wfp-scenario-shortage-and-hiring.png" alt="Shortage FTE by scenario, rising to 182 under Constraint, and hires required exceeding constrained capacity">
+      <figcaption>Fig 7. — Shortage and hiring need by scenario (model output).</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/wfp-sensitivity-tornado.png" alt="Tornado chart; recruitment capacity and attrition produce the widest swings in the FY2029 shortage">
+      <figcaption>Fig 8. — One assumption at a time. Recruitment capacity and attrition move the shortage most; wage growth and agency price move only cost.</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/wfp-monte-carlo-shortage.png" alt="Histogram of 2,000 simulated FY2029 shortages with P10 18, P50 47 and P90 111 FTE">
+      <figcaption>Fig 9. — 2,000 simulations. The median (47 FTE) sits above the Baseline (28) because the risks lean toward higher attrition and lower capacity.</figcaption>
+    </figure>
+
+    <h2>Validation</h2>
+    <div class="case-table-wrap">
+      <table class="case-table">
+        <thead><tr><th>Check</th><th>Result</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>ABS / Census reconciliation</td><td>7 rules pass</td><td>tolerances documented</td></tr>
+          <tr><td>Cleaned data vs hidden truth</td><td>exact</td><td>headcount, family, site, hire date</td></tr>
+          <tr><td>SQL vs Python</td><td>exact</td><td>headcount, FTE, vacancy, 4 years of turnover</td></tr>
+          <tr><td>Excel vs Python</td><td>432 / 432</td><td>max difference 5.8 × 10⁻⁸</td></tr>
+          <tr><td>Model identities</td><td>pass</td><td>stock-flow closes in every scenario</td></tr>
+          <tr><td>Model backtest</td><td class="adv">synthetic only</td><td>checks mechanics, not real accuracy</td></tr>
+          <tr><td>Power BI report</td><td class="adv">not built</td><td>specification, DAX and wireframe only</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>What I'd tell the executive team</h2>
+    <ul class="reco-list">
+      <li><span class="n">01</span> Fix the single source of truth first. Raw HR figures overstated FTE by 6.2% and hid 74 FTE of vacancy. Every vacancy needs a requisition or a decision to hold it.</li>
+      <li><span class="n">02</span> Recruit doctors and allied health early. Hire on a 4–6 month lead time, set up a preferred locum panel and build university pipelines. Required medical hires are 149% of what the organisation has shown it can hire.</li>
+      <li><span class="n">03</span> Keep Care Workers through their first year. They are 77 of the 182 FTE Constraint shortage.</li>
+      <li><span class="n">04</span> Pilot regional recruitment at Broome and Kalgoorlie. A 30% regional capacity uplift cut the Constraint shortage from 182 to 139 FTE, the cheapest option tested on illustrative costs.</li>
+      <li><span class="n">05</span> Move nurses rather than hire more. Perth South is 14 FTE over its nursing establishment while Kalgoorlie is short.</li>
+      <li><span class="n">06</span> Treat agency pricing as a cost lever, not a supply lever. A cheaper panel saves about $5.7M but closes no gap.</li>
+      <li><span class="n">07</span> Watch four triggers: turnover above 16%, median time-to-fill above 50 days, WA vacancies per unemployed above 0.7, and WA health ads up more than 20% a year. If two hold for two quarters, switch to the Constraint plan.</li>
+    </ul>
+    <figure>
+      <img src="assets/wfp-interventions.png" alt="FY2029 shortage under each mitigation option against the Constraint reference of 182 FTE">
+      <figcaption>Fig 10. — Mitigation options tested against the Constraint scenario. Effects and costs are illustrative and need pilot evidence before funding.</figcaption>
+    </figure>
+
+    <h2>Limits and next steps</h2>
+    <p>
+      The organisation and its records are simulated, so the findings show the method, not facts about a real
+      employer. Shortage ratings are national only, demand is proxied by the budgeted establishment, and
+      programme effects are assumptions. To rerun this for real, I'd need monthly HRIS snapshots including
+      leavers, position-level establishment from Finance, and the full requisition history from the
+      applicant tracking system.
+    </p>
+
+  </article>
+
+</div>
+</body>
+</html>
