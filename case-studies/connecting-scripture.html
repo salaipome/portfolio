@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connecting Scripture: Bible Word &amp; Cross-Reference Analysis — Salai Hang</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="wrap case">
+
+  <a class="backlink" href="https://salaipome.github.io/portfolio/">← Back to portfolio</a>
+
+  <div class="case-head">
+    <p class="section-label">Case Study</p>
+    <h1>Connecting Scripture: What the Bible Says Most, and How the Old Testament Connects to the New</h1>
+    <p class="case-meta">
+      <span>Python · Pandas · Matplotlib · FFmpeg</span>
+      <span class="sep">·</span>
+      <span>Data: <a href="https://github.com/thiagobodruk/bible" target="_blank" rel="noopener">King James Version text</a> (public domain), <a href="https://www.openbible.info/labs/cross-references/" target="_blank" rel="noopener">OpenBible.info cross-references</a> (CC-BY)</span>
+    </p>
+  </div>
+
+  <article>
+
+    <h2>Brief</h2>
+    <p>
+      Two questions: which words does the Bible use most, and how does the Old Testament connect to the
+      New? The starting point was a popular chart of Old-to-New Testament links. The goal was to rebuild
+      it from open data, show every cleaning step, and turn the result into a short data film for
+      Instagram Reels, where every number on screen comes from the final dataset.
+    </p>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">Words analysed</div><div class="stat-value">790,705</div><div class="stat-sub">31,102 verses · 66 books</div></div>
+      <div class="stat"><div class="stat-label">Cross-references</div><div class="stat-value">344,799</div><div class="stat-sub">raw rows, before cleaning</div></div>
+      <div class="stat"><div class="stat-label">Old ↔ New links</div><div class="stat-value">68,209</div><div class="stat-sub">unique verse pairs</div></div>
+      <div class="stat"><div class="stat-label">Most-used word</div><div class="stat-value">7,840</div><div class="stat-sub">LORD · 1 in every 101 words</div></div>
+    </div>
+
+    <h2>The result</h2>
+    <p>
+      A 72-second vertical data film in six scenes: a title card whose numbers count up, bars that grow in
+      sequence, a connection map whose 846 book-to-book curves draw themselves before the camera zooms in on Psalms
+      and Isaiah, the strongest links, and three takeaways. The soundtrack is a strings arrangement of
+      <em>How Great Thou Art</em> built in code and timed to the scenes, so the refrain peaks as the
+      connection map zooms in.
+    </p>
+    <div class="video-embed vertical">
+      <video src="assets/bible-data-story.mp4" poster="assets/bible-poster.jpg" controls playsinline preload="none"
+        aria-label="Connecting Scripture data film"></video>
+    </div>
+
+    <h2>The process</h2>
+    <p>Five steps, each a short Python script, so the whole pipeline reruns from two downloaded files:</p>
+    <ol>
+      <li>Get the data</li>
+      <li>Prepare the text</li>
+      <li>Clean the cross-references</li>
+      <li>Explore the data (EDA)</li>
+      <li>Analyse: word counts and the connection matrix</li>
+    </ol>
+
+    <h2>Step 1 · Get the data</h2>
+    <p>
+      Two open datasets. The <strong>King James Version</strong> text arrives as nested JSON (book → chapter
+      → verse). The <strong>OpenBible.info cross-references</strong> are 344,799 crowd-sourced verse-to-verse
+      links, each with a reader vote count from −86 to 1,300 (median 3).
+    </p>
+<pre><code>curl -L -o kjv.json \
+  https://raw.githubusercontent.com/thiagobodruk/bible/master/json/en_kjv.json
+curl -L -o xref.zip https://a.openbible.info/data/cross-references.zip
+unzip xref.zip    <span class="c"># cross_references.txt: From Verse, To Verse, Votes</span></code></pre>
+
+    <h2>Step 2 · Prepare the text</h2>
+    <p>
+      Flatten the JSON to one row per verse (31,102 rows), label books 1–39 Old Testament and 40–66 New,
+      then split each verse into words. The regex lowercases text and keeps possessives like
+      <em>lord's</em> together, while dropping numbers and punctuation.
+    </p>
+<pre><code><span class="c"># the file starts with a byte-order mark</span>
+books = json.load(open("kjv.json", encoding="utf-8-sig"))
+word_re = re.compile(r"[a-z]+(?:'[a-z]+)?")
+
+rows = []
+for i, b in enumerate(books):
+    for c, chapter in enumerate(b["chapters"], 1):
+        for v, text in enumerate(chapter, 1):
+            words = word_re.findall(text.lower().replace("’", "'"))
+            testament = "OT" if i &lt; 39 else "NT"
+            rows.append((b["name"], testament, c, v, len(words), words))
+df = pd.DataFrame(rows, columns=["book", "testament", "chapter",
+                                 "verse", "n_words", "words"])</code></pre>
+    <p>
+      Checks at this step: 0 empty verses and 0 editorial annotations. The regex splits hyphenated names like
+      <em>Beer-sheba</em>, which is why the total of 790,705 words sits about 1% above the usually quoted
+      ~783,000. The rankings are unaffected.
+    </p>
+
+    <h2>Step 3 · Clean the cross-references</h2>
+    <p>
+      Map every reference such as <code>Ps.23.1</code> to its book with a 66-code lookup, drop links that
+      readers voted down, keep only links that cross between the testaments, and collapse pairs that were
+      listed in both directions.
+    </p>
+<pre><code>x = pd.read_csv("cross_references.txt", sep="\t", skiprows=1,
+                names=["src", "dst", "votes"])
+x = x[x.votes &gt; 0]                          <span class="c"># drop disputed links: 3,508</span>
+
+<span class="c"># "Ps.23.1" -&gt; "Psalms" (0 unmapped)</span>
+x["sb"] = x.src.str.split(".").str[0].map(CODE2NAME)
+x["db"] = x.dst.str.split(".").str[0].map(CODE2NAME)
+
+<span class="c"># Old &lt;-&gt; New only: 72,138 rows</span>
+cross = x[x.sb.isin(OT) != x.db.isin(OT)]
+
+<span class="c"># put every pair in Old -&gt; New order, then one row per pair</span>
+ot_first = cross.sb.isin(OT)
+cross["ov"] = cross.src.where(ot_first, cross.dst)
+cross["nv"] = cross.dst.where(ot_first, cross.src)
+pairs = cross.groupby(["ov", "nv"], as_index=False).votes.max()  <span class="c"># 68,209</span></code></pre>
+    <div class="case-table-wrap">
+      <table class="case-table">
+        <thead><tr><th>Step</th><th>Rule</th><th>Rows</th></tr></thead>
+        <tbody>
+          <tr><td>Disputed links</td><td>drop rows with votes ≤ 0</td><td>3,508 dropped</td></tr>
+          <tr><td>Book codes</td><td>all codes map to a book</td><td>0 unmapped</td></tr>
+          <tr><td>Scope</td><td>keep Old ↔ New links only</td><td>72,138 kept</td></tr>
+          <tr><td>Duplicates</td><td>pair listed both ways → keep one</td><td>3,929 collapsed</td></tr>
+          <tr><td>Final dataset</td><td>unique verse pairs</td><td><strong>68,209</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Step 4 · Explore the data (EDA)</h2>
+    <p>
+      Before ranking anything, I profiled the text and the links to see what could bias the results.
+    </p>
+<pre><code>df.groupby("testament").n_words.sum()   <span class="c"># OT 610,220 · NT 180,485</span>
+df.n_words.describe()                   <span class="c"># mean 25.4, median 24 words per verse</span>
+df.loc[df.n_words.idxmin()]             <span class="c"># John 11:35, "Jesus wept." (2 words)</span>
+x.votes.describe()                      <span class="c"># -86 to 1,300, median 3: heavily skewed</span></code></pre>
+    <figure>
+      <img src="assets/bible-eda-overview.png" alt="Four EDA charts: words per book, words per verse histogram, cross-reference votes on a log scale, and cross-references by direction">
+      <figcaption>Fig 1. — Words per book, verse length, reader votes, and which cross-references were kept.</figcaption>
+    </figure>
+    <ul>
+      <li><strong>The Old Testament is 77% of the text</strong> (610,220 of 790,705 words), so whole-Bible counts lean towards its vocabulary. That is why each testament is also ranked on its own.</li>
+      <li><strong>The 10 most common words make up 28.8% of all text</strong>, and <em>the</em> alone appears 63,938 times. Removing stop words is essential.</li>
+      <li><strong>Votes are heavily skewed.</strong> Most links have a few votes and only 368 pairs have 100 or more, so votes are used to rank the strongest verse links, while book totals simply count links.</li>
+      <li><strong>Links within the Old Testament dominate the raw file</strong> (186,145 rows). Links between the testaments are 21%.</li>
+    </ul>
+
+    <h2>Step 5 · Analyse</h2>
+    <p>
+      Word counts use the tokens from step 2 with about 150 grammar and archaic filler words removed
+      (<em>the, and, unto, thee, hath, shalt</em>). The raw counts are kept too. The connection matrix counts
+      verse pairs for every Old × New book combination (39 × 27).
+    </p>
+<pre><code>counts = Counter(w for words in df.words for w in words)
+<span class="c"># LORD 7,840 · God 4,447 · man 2,615 …</span>
+content = [(w, n) for w, n in counts.most_common() if w not in STOP]
+
+<span class="c"># 39 x 27 table of link counts</span>
+matrix = pairs.pivot_table(index="ot", columns="nt", values="votes",
+                           aggfunc="size", fill_value=0)</code></pre>
+    <figure>
+      <img src="assets/bible-top-words.png" alt="Bar chart of the 25 most-used content words, led by LORD with 7,840">
+      <figcaption>Fig 2. — LORD (7,840) and God (4,447) lead, followed by man, Israel, son and king.</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/bible-ot-vs-nt-words.png" alt="Side-by-side bar charts of the top 20 words in the Old and New Testaments">
+      <figcaption>Fig 3. — The Old Testament is about a nation and its kings; the New brings Jesus, Christ, spirit and faith. “Jesus” and “Christ” never appear in the Old Testament, and “faith” goes from 2 uses to 245.</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/bible-connection-map.jpg" alt="Arc diagram connecting 39 Old Testament books to 27 New Testament books, with Psalms and Isaiah carrying the thickest links">
+      <figcaption>Fig 4. — Every Old ↔ New book pair with 3+ links. Orange marks pairs with 170+ links.</figcaption>
+    </figure>
+    <p>
+      <strong>Psalms (11,690 links) and Isaiah (8,665)</strong> carry 29.8% of every connection between the
+      testaments. On the New Testament side, Matthew (8,800), Luke (7,802), Acts (7,101) and Revelation
+      (6,717) draw on the Old the most. The strongest book pair is Psalms → Matthew with 1,412 links, and the
+      most-voted single link is <strong>Jeremiah 1:5 → Romans 8:29</strong> (1,154 votes).
+    </p>
+    <figure>
+      <img src="assets/bible-top-connections.png" alt="Bar charts of the Old Testament books most linked to the New, and the strongest book-to-book pairs">
+      <figcaption>Fig 5. — The most-linked Old Testament books and the strongest book-to-book pairs.</figcaption>
+    </figure>
+
+    <!-- Step 6 hidden
+    <h2>Step 6 · Visualise</h2>
+    <p>
+      The film is rendered frame by frame in Matplotlib at 1.5× resolution, then cropped and scaled per frame
+      for smooth camera moves, and piped to FFmpeg across 8 parallel workers (2,160 frames). Counters ease to
+      their exact final values, bars and curves are staggered, and scenes cross-fade. The orange/blue
+      palette was checked for colour-blind separation and dark-mode contrast with a palette validator.
+    </p>
+    <p>
+      There were no audio libraries or samples on the machine, so the soundtrack is synthesised in NumPy:
+      the traditional Swedish melody <em>O store Gud</em> with a CC0 four-part harmonisation, voiced for five
+      string sections with detuned ensemble players, vibrato, stereo placement and a convolution hall
+      reverb. A tempo map aligns the music to the scenes, and the mix is normalised to −16 LUFS.
+      Four 9:16 cover images are generated from the same data, with headlines kept inside the
+      profile-grid crop. The whole pipeline reruns in order:
+    </p>
+<pre><code><span class="c"># steps 2-4: cleaning and EDA statistics</span>
+python3 eda.py kjv.json cross_references.txt output
+<span class="c"># step 5: word counts, connection matrix, charts</span>
+python3 bible_analysis.py kjv.json cross_references.txt output
+<span class="c"># step 6: data film (~5 min), strings score, Reels covers</span>
+python3 make_video.py kjv.json output
+python3 make_music.py assets/o_store_gud.mid output
+python3 make_thumbnails.py kjv.json output</code></pre>
+    -->
+
+    <h2>Validation</h2>
+    <div class="case-table-wrap">
+      <table class="case-table">
+        <thead><tr><th>Check</th><th>Result</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Book-code mapping</td><td>pass</td><td>0 of 341,291 rows unmapped</td></tr>
+          <tr><td>Cleaning reconciles</td><td>pass</td><td>72,138 − 3,929 = 68,209</td></tr>
+          <tr><td>On-screen numbers</td><td>pass</td><td>read from the output CSVs</td></tr>
+          <tr><td>Palette</td><td>pass</td><td>colour-blind ΔE 25.7; contrast ≥ 3:1</td></tr>
+          <tr><td>Word total vs published</td><td class="adv">+~1%</td><td>hyphenated names split</td></tr>
+          <tr><td>Quotation vs allusion</td><td class="adv">not split</td><td>includes themes, not only quotes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Where this points</h2>
+    <ul class="reco-list">
+      <li><span class="n">01</span> “Connections” depends on the definition. Crowd-sourced cross-references include allusions and shared themes, so their counts run far higher than quotation-only lists. Any headline needs its source stated.</li>
+      <li><span class="n">02</span> Translation shapes word counts. KJV prints the divine name as LORD; other translations, or the Hebrew and Greek, would rank differently.</li>
+      <li><span class="n">03</span> Reconcile every cleaning step. Showing that the row counts add up made the final number defensible on screen.</li>
+      <li><span class="n">04</span> Next step: separate direct quotations from allusions, and compare the network across translations.</li>
+    </ul>
+
+  </article>
+
+</div>
+</body>
+</html>
