@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Rise of the Top 10 Audio Mixers — Salai Hang</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="wrap case">
+
+  <a class="backlink" href="https://salaipome.github.io/portfolio/">← Back to portfolio</a>
+
+  <div class="case-head">
+    <p class="section-label">Case Study</p>
+    <h1>The Rise of the Top 10 Audio Mixers, 1990–2025</h1>
+    <p class="case-meta">
+      <span>Python · Pandas · Matplotlib · D3 · FFmpeg</span>
+      <span class="sep">·</span>
+      <span>Data: <a href="https://musicbrainz.org/doc/MusicBrainz_Database/Download" target="_blank" rel="noopener">MusicBrainz full database export</a> (20261017, CC0), cross-checked with the <a href="https://www.discogs.com/developers" target="_blank" rel="noopener">Discogs API</a></span>
+    </p>
+  </div>
+
+  <article>
+
+    <h2>Brief</h2>
+    <p>
+      Which audio mixing engineers have the most documented mixing credits from 1990 to 2025, across every
+      genre, and how did their careers rise and peak? The rules were strict: no assuming the famous names
+      are the answer, keep mixing separate from mastering, recording and production, never treat missing data
+      as zero, and label the result for what it is: a ranking of <strong>documented credits in one
+      community database</strong>, not of every mix ever made. The output is an animated bar-chart race,
+      an interactive dashboard and a reproducible pipeline.
+    </p>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">Recordings scanned</div><div class="stat-value">1.01M</div><div class="stat-sub">1,014,674 with a mixing credit</div></div>
+      <div class="stat"><div class="stat-label">Credit rows cleaned</div><div class="stat-value">1.47M</div><div class="stat-sub">58,859 credited artists</div></div>
+      <div class="stat"><div class="stat-label">#1 mixer</div><div class="stat-value">7,466</div><div class="stat-sub">Jon Altschiller · 94% live</div></div>
+      <div class="stat"><div class="stat-label">#1 excluding live</div><div class="stat-value">4,525</div><div class="stat-sub">Shawn Murphy · film scores</div></div>
+    </div>
+
+    <h2>The result</h2>
+    <p>
+      A 1:47 data film built from the final dataset: an LED-meter bar race of credits per year, cumulative
+      career lines that draw themselves, final standings and the method. The score is original and synced
+      in code, with a kick on every year change.
+    </p>
+    <div class="video-embed">
+      <iframe src="https://www.youtube-nocookie.com/embed/MZzF2jaNgCI" title="The Rise of the Top 10 Audio Mixers, 1990–2025" loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    </div>
+    <p class="case-links">
+      <a href="https://www.youtube.com/watch?v=MZzF2jaNgCI" target="_blank" rel="noopener">Watch on YouTube ↗</a>
+      <a href="https://claude.ai/artifact/BsJJy9RcFR9RusWzJxjJhp" target="_blank" rel="noopener">Open the interactive dashboard ↗</a>
+    </p>
+
+    <h2>Gathering the data</h2>
+    <p>
+      I started with a pilot instead of a bulk download: five mixers across pop, rock, R&amp;B, country and
+      alternative, pulled from the MusicBrainz and Discogs APIs through a client with rate limiting (1 request
+      per second), retries with back-off and an on-disk cache so every rerun is deterministic. The pilot
+      answered the key design questions. MusicBrainz stores mixing as its own relationship type, separate from
+      mastering and remixing. Some mixing credits hide inside generic "engineer" credits whose free-text task
+      says "Mixing". And album-level credits made up as much as 56% of one mixer's rows.
+    </p>
+    <p>
+      It also showed the limit of the API: it cannot list every person with a mixing credit, so any top 10
+      built from it would just rank the names I chose. To build the candidate pool from data, I downloaded the
+      full 7.6&nbsp;GB MusicBrainz export (MD5-verified), extracted only the 25 tables needed, and streamed
+      them with pandas in chunks, with no database server. Joining relationship, link-type and attribute
+      tables gave every artist→recording and album-level mix credit in the database:
+      <strong>1,472,162 credit rows for 58,859 artists</strong>.
+    </p>
+
+    <h2>Cleaning</h2>
+    <p>
+      Every rule lives in one small, unit-tested module (26 tests) so the API pilot and the full build
+      clean data the same way.
+    </p>
+    <ul>
+      <li><strong>Role filter.</strong> Kept mix credits, "additional" mixes and engineer credits whose task names mixing. Dropped assistant mixing (89,500 rows), partial mixes limited to one instrument, associate/executive credits, and album credits on compilations, which would otherwise credit every track on a hits collection.</li>
+      <li><strong>Dates.</strong> Year = the earliest dated release containing the recording, from country-specific and unknown-country release dates. Partial dates are handled; a missing date is never a zero.</li>
+      <li><strong>Duplicates.</strong> Union-find grouping per mixer on shared recording ID, shared ISRC, or matching title + artist + length within 3 seconds, after stripping edition markers like "2011 Remaster". Remix, edit and live markers are kept, because those can be genuinely different mixes.</li>
+      <li><strong>Identity.</strong> People are matched on stable MusicBrainz IDs, not names. Two "Andy Wallace" and two "Tony Maserati" entries were disambiguated by evidence, and aliases are only merged when they belong to the same entity.</li>
+    </ul>
+    <figure>
+      <img src="assets/mixers-cleaning-funnel.png" alt="Funnel from 1,472,162 credit rows to 1,063,843 unique person-recording credits">
+      <figcaption>Fig 1. — Rows kept after each rule: 72% of loaded rows survive as unique person × recording credits for 1990–2025.</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/mixers-role-filter.png" alt="Credit rows by role on a log scale, with counted roles in green and dropped roles in grey">
+      <figcaption>Fig 2. — What counted as mixing. Green roles were kept; grey ones were dropped as not a full mix (log scale).</figcaption>
+    </figure>
+    <p>
+      Two bugs were caught by checking results rather than trusting them. First, the word "mastering" was
+      vetoing tasks like "mixing and mastering". A new test exposed it. Second, and bigger, my first title
+      rule merged two recordings whenever either length was missing. That collapsed one mixer's
+      <strong>7,491 distinct recordings to 2,667</strong>, because each was a different live performance of
+      the same songs. The fix uses MusicBrainz's own disambiguation ("live, 1978-07-01: Berkeley") and requires
+      both lengths, with tests for both cases.
+    </p>
+
+    <h2>Exploring the data</h2>
+    <p>
+      Before ranking anyone, I profiled who the data favours. Credits follow a steep long tail: the median
+      credited person has <strong>10 credits</strong>, the mean is 22.8, only <strong>49 people</strong> have
+      1,000 or more, and the top 1% hold 24% of all documented credits.
+    </p>
+    <figure>
+      <img src="assets/mixers-long-tail.png" alt="Bar chart of people by credit count, from 8,068 people with one credit to 49 with over 1,000">
+      <figcaption>Fig 3. — People grouped by credit count, 1990–2025. 1,718 people with 100+ credits hold 42% of all credits.</figcaption>
+    </figure>
+    <p>
+      Documentation grows over time, from 183,843 credits in the 1990s to 369,664 in the 2010s, which reflects
+      how much has been entered as well as how much was made. Tagged recordings lean rock (32%), electronic
+      (11%) and jazz (11%), and 30% carry no genre tag at all. Only 6% of all credits are live recordings, which
+      becomes important below.
+    </p>
+    <figure>
+      <img src="assets/mixers-decades.png" alt="Bar chart of credits by decade, rising to 369,664 in the 2010s">
+      <figcaption>Fig 4. — Credits and credited people by decade. The 2020s cover six years and the last two are still being entered.</figcaption>
+    </figure>
+
+    <h2>Ranking and the archive effect</h2>
+    <p>
+      Deduplication only runs on a candidate pool of 236 people (top 60 overall plus the top 15 in every
+      year). Because merging can only lower a count, the selection is provably settled when 10th place after
+      merging (1,968) beats the best raw count outside the pool (816). It does, by 1,152.
+    </p>
+    <figure>
+      <img src="assets/mixers-top10-live-split.png" alt="Top 10 mixers with credits split into live and studio recordings; three are mostly live">
+      <figcaption>Fig 5. — The top 10, split by live vs other recordings. Three mixers are there almost entirely through live recordings.</figcaption>
+    </figure>
+    <p>
+      The data's biggest surprise: <strong>three of the ten</strong> (Jon Altschiller, Mike Gillies, Rob
+      Lebret) reach the list through official live-concert archive series from Bruce Springsteen and
+      Metallica, where every song at every show is its own recording. Under the brief's counting rule that's
+      correct, so I didn't change the rule after seeing the answer. I made the effect visible instead and
+      published sensitivity rankings. With album-level credits removed, the same 10 remain. Without live
+      recordings, 6 of 10 stay. Film-score mixer <strong>Shawn Murphy</strong> leads with 4,525 credits,
+      ahead of Alan Meyerson and Dennis Sands, then the pop and rock names you might expect: Serban Ghenea,
+      Chris Lord-Alge and Spike Stent.
+    </p>
+    <figure>
+      <img src="assets/mixers-cumulative.png" alt="Cumulative credit lines for the top 10, with three live-archive mixers rising steeply late">
+      <figcaption>Fig 6. — Running totals. Live-archive careers (yellow) jump when archive series are released; Altschiller takes the lead in 2023.</figcaption>
+    </figure>
+
+    <h2>Validation</h2>
+    <div class="case-table-wrap">
+      <table class="case-table">
+        <thead><tr><th>Check</th><th>Result</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Unit tests</td><td>26 pass</td><td>role filter, dates, dedup, aliases</td></tr>
+          <tr><td>Download integrity</td><td>pass</td><td>both archives MD5-verified</td></tr>
+          <tr><td>Top 10 is settled</td><td>pass</td><td>1,152-credit margin over the pool</td></tr>
+          <tr><td>Track credits only</td><td>10 of 10 same</td><td>album-level credits removed</td></tr>
+          <tr><td>Excluding live recordings</td><td>6 of 10 same</td><td>archive effect isolated</td></tr>
+          <tr><td>Discogs agreement</td><td class="adv">22.7% median</td><td>title overlap; Discogs counts releases, not recordings</td></tr>
+          <tr><td>Manual liner-note check</td><td class="adv">not done</td><td>sample prepared; outstanding</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Visualising it</h2>
+    <p>
+      The animations are rendered frame by frame with Matplotlib and piped straight to FFmpeg: LED-meter bars
+      that light green to yellow to red, eased transitions, count-up values, highlighted insights, and every
+      number read from the final CSVs. The same data drives a 16:9 YouTube cut, a 9:16 Reels cut, cover and
+      thumbnail images, an interactive D3 dashboard with a bar race, career profiles, sortable rankings and a
+      process view, and CSV exports for Looker Studio or Power BI.
+    </p>
+
+    <h2>Where this points</h2>
+    <ul class="reco-list">
+      <li><span class="n">01</span> "Most credits" depends on the unit. Counting recordings rewards live archives and film scores with many short cues; counting releases or songs would rank differently. Any headline needs its unit stated.</li>
+      <li><span class="n">02</span> Credit databases reflect who documents, not only who works. Rock-heavy tagging and growing coverage over time are biases to state, not noise to ignore.</li>
+      <li><span class="n">03</span> Prove the selection, don't assume it. A cheap safety check (dedup can only lower counts) turned "probably the top 10" into "provably the top 10 for this dataset".</li>
+      <li><span class="n">04</span> Next step: a manual check of a random sample against liner notes, and track-level Discogs data from its monthly dumps, to measure precision rather than only agreement.</li>
+    </ul>
+
+  </article>
+
+</div>
+</body>
+</html>
