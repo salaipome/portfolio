@@ -53,13 +53,14 @@
     </div>
 
     <h2>The process</h2>
-    <p>Five steps, each a short Python script, so the whole pipeline reruns from two downloaded files:</p>
+    <p>Six steps, each a short Python script, so the whole pipeline reruns from two downloaded files:</p>
     <ol>
       <li>Get the data</li>
       <li>Prepare the text</li>
       <li>Clean the cross-references</li>
       <li>Explore the data (EDA)</li>
       <li>Analyse: word counts and the connection matrix</li>
+      <li>Deep dive: how the “only Saviour” verses connect to Jesus</li>
     </ol>
 
     <h2>Step 1 · Get the data</h2>
@@ -188,8 +189,64 @@ matrix = pairs.pivot_table(index="ot", columns="nt", values="votes",
       <figcaption>Fig 5. — The most-linked Old Testament books and the strongest book-to-book pairs.</figcaption>
     </figure>
 
-    <!-- Step 6 hidden
-    <h2>Step 6 · Visualise</h2>
+    <h2>Step 6 · Deep dive: one Saviour</h2>
+    <p>
+      To test the connection map on a single theme, I followed one question through the data: how do the Old
+      Testament's “only Saviour” verses connect to Jesus in the New? Isaiah 43:11 says <em>“I, even I, am the
+      LORD; and beside me there is no saviour”</em>, and Hosea 13:4 and Isaiah 45:21–22 repeat it.
+    </p>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">“Saviour” in the OT</div><div class="stat-value">13</div><div class="stat-sub">11 name God; 2 are sent by God</div></div>
+      <div class="stat"><div class="stat-label">“Saviour” in the NT</div><div class="stat-value">24</div><div class="stat-sub">14 name Jesus or Christ</div></div>
+      <div class="stat"><div class="stat-label">OT salvation verses</div><div class="stat-value">150</div><div class="stat-sub">1,277 links to the NT</div></div>
+      <div class="stat"><div class="stat-label">Land on Jesus / Christ</div><div class="stat-value">20.9%</div><div class="stat-sub">vs 13.4% for all links</div></div>
+    </div>
+    <p>
+      I flagged every New Testament verse that names Jesus or Christ, then compared two groups of links: all
+      68,209, and the 1,277 that start from the 150 Old Testament verses using <em>saviour, salvation,
+      redeemer</em> or <em>deliverer</em>.
+    </p>
+<pre><code>pairs["names_jesus"] = pairs.nt_text.str.contains(r"\b(?:Jesus|Christ)\b")
+pairs.names_jesus.mean()                   <span class="c"># 13.4% of all Old &lt;-&gt; New links</span>
+
+SAL = {"saviour", "salvation", "redeemer", "deliverer"}
+sal_ot = {ref for ref, words in ot_verses if words &amp; SAL}       <span class="c"># 150 verses</span>
+sal = pairs[pairs.ov.str.split("-").str[0].isin(sal_ot)]       <span class="c"># 1,277 links</span>
+sal.names_jesus.mean()                     <span class="c"># 20.9%, about 1.6x the baseline</span></code></pre>
+    <p>
+      Salvation verses lead to verses naming Jesus about 1.6 times as often as the average link. The flag only
+      counts the words “Jesus” and “Christ”, so verses such as <em>“unto the Lamb”</em> (Revelation 7:10) are
+      missed and the 20.9% is a floor. Following the “only Saviour” verses themselves:
+    </p>
+    <div class="case-table-wrap">
+      <table class="case-table">
+        <thead><tr><th>Old Testament</th><th>Top New Testament links</th><th>Votes</th></tr></thead>
+        <tbody>
+          <tr><td>Isaiah 43:11</td><td>Acts 4:12 · Jude 1:25</td><td>14 · 8</td></tr>
+          <tr><td>Hosea 13:4</td><td>Acts 4:12</td><td>8</td></tr>
+          <tr><td>Isaiah 45:22</td><td>Titus 2:11 · John 6:40</td><td>36 · 33</td></tr>
+          <tr><td>Isaiah 44:6</td><td>Hebrews 13:8 · Revelation 1:8</td><td>72 · 68</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      The clearest evidence is where the New Testament itself takes words the Old Testament uses of the LORD
+      and applies them to Jesus. Acts 4:12, <em>“there is none other name under heaven given among men,
+      whereby we must be saved”</em>, answers Isaiah 43:11 directly. Every quote in the chart below is checked
+      against the KJV text in code before the image is drawn.
+    </p>
+    <figure>
+      <img src="assets/bible-one-saviour.png" alt="Eight pairs of Old Testament verses and the New Testament verses that apply them to Jesus, with reader votes">
+      <figcaption>Fig 6. — Eight Old Testament texts the New Testament applies to Jesus, with OpenBible reader votes for each link.</figcaption>
+    </figure>
+    <p>
+      The data can show which verses are connected and how strongly; it cannot settle the theology. The
+      cross-references are crowd-voted, mostly by Christian readers, so the strongest evidence is the direct
+      quotations the New Testament makes itself.
+    </p>
+
+    <!-- Step 7 hidden
+    <h2>Step 7 · Visualise</h2>
     <p>
       The film is rendered frame by frame in Matplotlib at 1.5× resolution, then cropped and scaled per frame
       for smooth camera moves, and piped to FFmpeg across 8 parallel workers (2,160 frames). Counters ease to
